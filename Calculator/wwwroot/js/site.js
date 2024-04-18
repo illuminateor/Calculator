@@ -20,55 +20,31 @@
         this.currentOperand = this.currentOperand.toString() + number.toString()
     }
 
-    chooseOperation(operation) {
-        if (this.currentOperand === '') return
-        if (this.previousOperand !== '') {
+    chooseOperation(operation, single = false) {
+        this.operation = operation
+        if (this.previousOperand !== '' || single) {
             this.compute()
         }
-        this.operation = operation
         this.previousOperand = this.currentOperand
         this.currentOperand = ''
     }
 
     async compute() {
-        let computation
         const prev = parseFloat(this.previousOperand)
         const current = parseFloat(this.currentOperand)
-        if (isNaN(prev) || isNaN(current)) return
-        //switch (this.operation) {
-        //    case '+':
-        //        computation = prev + current
-        //        break
-        //    case '-':
-        //        computation = prev - current
-        //        break
-        //    case '*':
-        //        computation = prev * current
-        //        break
-        //    case '÷':
-        //        computation = prev / current
-        //        break
-        //    default:
-        //        return
-        //}
-
-        //this.currentOperand = computation;
-        //this.operation = undefined
-        //this.previousOperand = ''
-
 
         try {
-            const response = await fetch(`/Home/Compute?numOne=${prev}&numTwo=${current}&operation=${encodeURIComponent(this.operation)}`)
+            const response = await fetch(`/Api/Calculator?numOne=${prev}&numTwo=${current}&operation=${encodeURIComponent(this.operation)}`)
             const result = await response.json();
+            console.log(result);
             this.currentOperand = result.success ? result.data.replace(/,/g, '.') : '';
             this.operation = undefined
             this.previousOperand = ''
+            await calculator.updateDisplay()
 
         } catch(e) {
             console.log('failed to compute', e)
         }
-
-
     }
 
     getDisplayNumber(number) {
@@ -130,8 +106,7 @@ numberButtons.forEach((button) => {
 
 operationButtons.forEach((button) => {
     button.addEventListener('click', () => {
-        calculator.chooseOperation(button.innerText)
-        calculator.updateDisplay()
+        calculator.chooseOperation(button.innerText, button.dataset.single)
     })
 })
 
